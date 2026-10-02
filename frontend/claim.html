@@ -63,12 +63,14 @@
 
     <script src="app.js"></script>
     <script>
-        const visits = getVisits();
-        document.getElementById('claimTotalVisits').innerText = visits.length;
-        document.getElementById('claimTotalAmount').innerText = `₹${visits.length * 150}`;
+        (async function() {
+            const visits = await apiGetVisits();
+            document.getElementById('claimTotalVisits').innerText = visits.length;
+        })();
 
-        function downloadClaimPDF() {
-            alert(`Verified Claim PDF generated for ${visits.length} visits! Total Amount: ₹${visits.length * 150}. Tamper-evident hash: a3f9e2... (Download simulated successfully)`);
+        async function downloadClaimPDF() {
+            const success = await apiGenerateClaim();
+            if (!success) alert('Failed to generate PDF. Check server logs.');
         }
     </script>
 </body>

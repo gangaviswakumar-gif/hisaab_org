@@ -46,36 +46,37 @@
 
     <script src="app.js"></script>
     <script>
-        const visits = getVisits();
-        const flagged = visits.filter(v => v.hrp_flag);
-        document.getElementById('alertHeaderCount').innerText = `${flagged.length} Active Alerts`;
-        const container = document.getElementById('alertsListContainer');
-        container.innerHTML = '';
+        (async function() {
+            const flagged = await apiGetFlaggedVisits();
+            document.getElementById('alertHeaderCount').innerText = `${flagged.length} Active Alerts`;
+            const container = document.getElementById('alertsListContainer');
+            container.innerHTML = '';
 
-        if (flagged.length === 0) {
-            container.innerHTML = `<div class="bg-emerald-50 border border-emerald-200 rounded-xl p-8 text-center"><h4 class="font-bold text-emerald-900">No Active Clinical Alerts</h4><p class="text-xs text-emerald-700 mt-1">All registered patient vitals are within safe parameters.</p></div>`;
-        } else {
-            flagged.forEach(f => {
-                const card = document.createElement('div');
-                card.className = "bg-white border-l-4 border-rose-500 rounded-xl p-5 shadow-sm space-y-3";
-                card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h4 class="font-bold text-gray-900 text-base">${f.name} <span class="text-xs font-normal text-gray-500 font-mono">(${f.rch_id})</span></h4>
-                            <p class="text-xs text-gray-500">Visit Date: ${f.visit_date} | Mobile: ${f.mobile || 'N/A'}</p>
+            if (flagged.length === 0) {
+                container.innerHTML = `<div class="bg-emerald-50 border border-emerald-200 rounded-xl p-8 text-center"><h4 class="font-bold text-emerald-900">No Active Clinical Alerts</h4><p class="text-xs text-emerald-700 mt-1">All registered patient vitals are within safe parameters.</p></div>`;
+            } else {
+                flagged.forEach(f => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white border-l-4 border-rose-500 rounded-xl p-5 shadow-sm space-y-3";
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-bold text-gray-900 text-base">${f.name} <span class="text-xs font-normal text-gray-500 font-mono">(${f.rch_id})</span></h4>
+                                <p class="text-xs text-gray-500">Visit Date: ${f.visit_date} | Mobile: ${f.mobile || 'N/A'}</p>
+                            </div>
+                            <span class="bg-rose-100 text-rose-700 text-xs font-bold px-2.5 py-1 rounded-lg">HRP Flagged</span>
                         </div>
-                        <span class="bg-rose-100 text-rose-700 text-xs font-bold px-2.5 py-1 rounded-lg">HRP Flagged</span>
-                    </div>
-                    <div class="bg-rose-50/50 p-3 rounded-lg border border-rose-100 space-y-1">
-                        <span class="text-xs font-bold text-rose-800 uppercase tracking-wider block">Triggered Rules & Warnings:</span>
-                        <ul class="list-disc list-inside text-xs text-rose-700 space-y-0.5">
-                            ${(f.alerts || ['High-risk indicator detected']).map(a => `<li>${a}</li>`).join('')}
-                        </ul>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
+                        <div class="bg-rose-50/50 p-3 rounded-lg border border-rose-100 space-y-1">
+                            <span class="text-xs font-bold text-rose-800 uppercase tracking-wider block">Triggered Rules & Warnings:</span>
+                            <ul class="list-disc list-inside text-xs text-rose-700 space-y-0.5">
+                                ${(f.alerts && f.alerts.length ? f.alerts : ['High-risk indicator detected']).map(a => `<li>${a}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+        })();
     </script>
 </body>
 </html>

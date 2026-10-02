@@ -1,75 +1,9 @@
-// API Integration Logic for Hisaab
+import re
 
-const API_BASE = "";
+with open('frontend/app.js', 'r', encoding='utf-8') as f:
+    content = f.read()
 
-async function apiGetVisits() {
-    try {
-        const res = await fetch(API_BASE + '/visits');
-        return await res.json();
-    } catch (e) {
-        console.error("Error fetching visits:", e);
-        return [];
-    }
-}
-
-async function apiGetFlaggedVisits() {
-    try {
-        const res = await fetch(API_BASE + '/visits/flagged');
-        return await res.json();
-    } catch (e) {
-        console.error("Error fetching flagged visits:", e);
-        return [];
-    }
-}
-
-async function apiConfirmVisit(draft) {
-    try {
-        const res = await fetch(API_BASE + '/confirm-visit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(draft)
-        });
-        return await res.json();
-    } catch (e) {
-        console.error("Error confirming visit:", e);
-        throw e;
-    }
-}
-
-async function apiGenerateClaim() {
-    try {
-        const res = await fetch(API_BASE + '/generate-claim', { method: 'POST' });
-        if (!res.ok) throw new Error("Failed to generate PDF");
-        
-        // Trigger download
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = "ASHA_Monthly_Claim_Report.pdf";
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        a.remove();
-        return true;
-    } catch (e) {
-        console.error("Error generating claim:", e);
-        return false;
-    }
-}
-
-// Local draft storage for passing between index.html and confirm.html
-const DRAFT_KEY = "hisaab_current_draft";
-function getCurrentDraft() {
-    const data = localStorage.getItem(DRAFT_KEY);
-    return data ? JSON.parse(data) : null;
-}
-function saveCurrentDraft(draft) {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-}
-
-
-
+replacement = """
 // MediaRecorder setup for index.html
 let mediaRecorder;
 let audioChunks = [];
@@ -196,3 +130,9 @@ async function toggleDummyRecording(onSuccessCallback) {
         });
     }
 }
+"""
+
+content = re.sub(r'// Simulated Recording State Variables.*', replacement, content, flags=re.DOTALL)
+
+with open('frontend/app.js', 'w', encoding='utf-8') as f:
+    f.write(content)

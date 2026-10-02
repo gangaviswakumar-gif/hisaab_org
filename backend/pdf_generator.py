@@ -8,7 +8,8 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 
-from backend.ledger import get_all_visits, verify_ledger, get_ledger_stats
+from backend.ledger import verify_ledger, get_ledger_stats
+from backend.database import get_all_visits
 
 def generate_incentive_pdf(
     output_filename: str = "asha_incentive_report.pdf",
@@ -177,23 +178,28 @@ def generate_incentive_pdf(
     rows = [headers]
 
     for v in visits:
-        risk = v.get("risk_level", "NORMAL")
-        risk_color = "#DC2626" if risk in ["HIGH_RISK", "CRITICAL"] else ("#D97706" if risk == "MODERATE_RISK" else "#16A34A")
+        hrp_flag = v.get("hrp_flag")
+        risk_str = "HIGH RISK" if hrp_flag else "NORMAL"
+        risk_color = "#DC2626" if hrp_flag else "#16A34A"
         
-        bp = f"{v.get('bp_sys', '-')}/{v.get('bp_dia', '-')}" if v.get('bp_sys') else "-"
+        bp = f"{v.get('bp_systolic', '-')}/{v.get('bp_diastolic', '-')}" if v.get('bp_systolic') else "-"
         hash_short = (v.get('hash') or '')[:8] + "…"
-        date_short = v.get('timestamp', '')[:10]
+        date_short = v.get('visit_date', '')[:10]
         
-        risk_cell = Paragraph(f"<font color='{risk_color}'><b>{risk}</b></font>", cell_style)
+        risk_cell = Paragraph(f"<font color='{risk_color}'><b>{risk_str}</b></font>", cell_style)
+        
+        # Calculate incentive for display
+        from backend.rules import calculate_incentive
+        inc_data = calculate_incentive(v)
         
         rows.append([
-            Paragraph(str(v.get("id")), cell_style),
+            Paragraph(str(v.get("visit_id", "")[:6]), cell_style),
             Paragraph(date_short, cell_style),
-            Paragraph(v.get("patient_name", "N/A"), cell_bold),
-            Paragraph(f"{v.get('gestational_age_weeks', '-')}w", cell_style),
+            Paragraph(v.get("name", "N/A"), cell_bold),
+            Paragraph(f"{v.get('gravida', '-')}/{v.get('para', '-')}", cell_style),
             Paragraph(bp, cell_style),
             risk_cell,
-            Paragraph(f"₹ {v.get('incentive_amount', 0):.0f}", cell_bold),
+            Paragraph(f"₹ {inc_data.get('total_amount', 0):.0f}", cell_bold),
             Paragraph(f"<font face='Courier' size='7'>{hash_short}</font>", cell_style),
         ])
 

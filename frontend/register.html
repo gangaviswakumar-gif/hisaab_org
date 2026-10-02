@@ -66,29 +66,31 @@
 
     <script src="app.js"></script>
     <script>
-        const visits = getVisits();
-        const tbody = document.getElementById('registerTableBody');
-        tbody.innerHTML = '';
+        (async function() {
+            const visits = await apiGetVisits();
+            const tbody = document.getElementById('registerTableBody');
+            tbody.innerHTML = '';
 
-        if (visits.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-400">No visits recorded yet.</td></tr>`;
-        } else {
-            visits.forEach(v => {
-                const tr = document.createElement('tr');
-                tr.className = v.hrp_flag ? "bg-rose-50/60 hover:bg-rose-100/50" : "hover:bg-gray-50";
-                const symptomsStr = Array.isArray(v.symptoms) ? v.symptoms.join(", ") : (v.symptoms || 'None');
-                tr.innerHTML = `
-                    <td class="p-3"><div class="font-bold text-gray-900">${v.name || 'Unnamed'}</div><div class="text-xs text-gray-500 font-mono">${v.rch_id || 'No ID'}</div></td>
-                    <td class="p-3 text-xs text-gray-600">${v.visit_date || '-'}</td>
-                    <td class="p-3 text-xs font-semibold text-gray-800">${v.weight_kg ? v.weight_kg + ' kg' : '-'}</td>
-                    <td class="p-3 text-xs font-semibold ${v.bp_systolic >= 140 ? 'text-rose-600 font-bold' : 'text-gray-800'}">${v.bp_systolic || '-'}/${v.bp_diastolic || '-'}</td>
-                    <td class="p-3 text-xs font-semibold ${v.hemoglobin < 11 ? 'text-amber-600' : 'text-gray-800'}">${v.hemoglobin ? v.hemoglobin + ' g/dL' : '-'}</td>
-                    <td class="p-3 text-xs text-gray-600 max-w-xs truncate">${symptomsStr}</td>
-                    <td class="p-3 text-center">${v.hrp_flag ? '<span class="inline-block w-3 h-3 rounded-full bg-rose-500 animate-pulse" title="HRP Flagged"></span>' : '<span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span>'}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
+            if (!visits || visits.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-400">No visits recorded yet.</td></tr>`;
+            } else {
+                visits.forEach(v => {
+                    const tr = document.createElement('tr');
+                    tr.className = v.hrp_flag ? "bg-rose-50/60 hover:bg-rose-100/50" : "hover:bg-gray-50";
+                    const symptomsStr = Array.isArray(v.symptoms) ? v.symptoms.join(", ") : (v.symptoms || 'None');
+                    tr.innerHTML = `
+                        <td class="p-3"><div class="font-bold text-gray-900">${v.name || 'Unnamed'}</div><div class="text-xs text-gray-500 font-mono">${v.rch_id || 'No ID'}</div></td>
+                        <td class="p-3 text-xs text-gray-600">${v.visit_date || '-'}</td>
+                        <td class="p-3 text-xs font-semibold text-gray-800">${v.weight_kg ? v.weight_kg + ' kg' : '-'}</td>
+                        <td class="p-3 text-xs font-semibold ${v.bp_systolic >= 140 ? 'text-rose-600 font-bold' : 'text-gray-800'}">${v.bp_systolic || '-'}/${v.bp_diastolic || '-'}</td>
+                        <td class="p-3 text-xs font-semibold ${v.hemoglobin < 11 ? 'text-amber-600' : 'text-gray-800'}">${v.hemoglobin ? v.hemoglobin + ' g/dL' : '-'}</td>
+                        <td class="p-3 text-xs text-gray-600 max-w-xs truncate">${symptomsStr}</td>
+                        <td class="p-3 text-center">${v.hrp_flag ? '<span class="inline-block w-3 h-3 rounded-full bg-rose-500 animate-pulse" title="HRP Flagged"></span>' : '<span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span>'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        })();
     </script>
 </body>
 </html>
