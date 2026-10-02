@@ -1,0 +1,33 @@
+# ASHA Worker Incentive Rate Sheet (INR)
+currency: "INR"
+symbol: "₹"
+
+incentives:
+  anc_visit_regular:
+    title: "Regular Antenatal Care (ANC) Visit"
+    rate: 50
+    description: "Routine check-up, BP, weight, and gestational monitoring"
+    
+  high_risk_detection:
+    title: "High-Risk Pregnancy Identification & Triage"
+    rate: 100
+    description: "Early detection of pre-eclampsia, gestational hypertension, or severe symptoms"
+    
+  severe_hypertension_referral:
+    title: "Critical / Emergency Referral"
+    rate: 100
+    description: "Emergency referral to Community Health Center (CHC) / District Hospital"
+
+  postnatal_followup:
+    title: "Postnatal Home Visit"
+    rate: 50
+    description: "Post-delivery home check-up within 42 days"
+
+  immunization_counseling:
+    title: "Immunization Counseling & Tracking"
+    rate: 50
+    description: "Tetanus toxoid and essential antenatal immunizations"
+
+meta:
+  version: "1.0"
+  scheme: "National Health Mission - ASHA Incentive Scheme"

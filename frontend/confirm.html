@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hisaab — Confirm & Edit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = { theme: { extend: { colors: { primary: { 50: '#ecfdf5', 100: '#d1fae5', 500: '#10b981', 600: '#059669', 700: '#047857' } } } } }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
+
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-primary-600 text-white p-2.5 rounded-xl shadow-md"><i class="fa-solid fa-notes-medical text-xl"></i></div>
+                <div><h1 class="text-xl font-bold text-gray-900">Hisaab</h1><p class="text-xs text-gray-500">Voice-first ANM Assistant</p></div>
+            </div>
+        </div>
+        <div class="bg-white border-t border-gray-100 px-4">
+            <div class="max-w-7xl mx-auto flex space-x-2 py-2 text-sm font-medium">
+                <a href="index.html" class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100"><i class="fa-solid fa-microphone mr-2"></i>Record Visit</a>
+                <a href="confirm.html" class="px-4 py-2 rounded-lg bg-primary-600 text-white shadow-sm"><i class="fa-solid fa-file-pen mr-2"></i>Confirm & Edit</a>
+                <a href="register.html" class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100"><i class="fa-solid fa-book-medical mr-2"></i>Register</a>
+                <a href="alerts.html" class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100"><i class="fa-solid fa-triangle-exclamation mr-2 text-rose-500"></i>Alerts</a>
+                <a href="claim.html" class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100"><i class="fa-solid fa-file-invoice-dollar mr-2"></i>Claim PDF</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
+        <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+            <div>
+                <h2 class="text-xl font-bold text-gray-900">Confirm & Edit Extracted Visit</h2>
+                <p class="text-xs text-gray-500">Review AI extractions before saving to register.</p>
+            </div>
+            <button onclick="saveAndRegister()" class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-xl font-semibold shadow transition flex items-center space-x-2">
+                <i class="fa-solid fa-circle-check"></i><span>Save to Register</span>
+            </button>
+        </div>
+
+        <div id="alertBanner" class="hidden bg-rose-50 border border-rose-300 rounded-xl p-4 text-rose-900 flex items-start space-x-3 shadow-sm">
+            <i class="fa-solid fa-triangle-exclamation text-rose-600 text-xl mt-0.5"></i>
+            <div><h4 class="font-bold text-sm">Danger Sign / Risk Detected!</h4><p id="alertBannerText" class="text-xs mt-0.5"></p></div>
+        </div>
+
+        <form id="visitForm" class="space-y-6">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-4">
+                <h3 class="text-sm font-bold text-primary-700 uppercase tracking-wider border-b pb-2"><i class="fa-solid fa-id-card mr-2"></i>Section A: Identification</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div><label class="block text-xs font-semibold text-gray-700 mb-1">Patient Name</label><input type="text" id="field-name" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:bg-white focus:outline-none"></div>
+                    <div><label class="block text-xs font-semibold text-gray-700 mb-1">RCH ID</label><input type="text" id="field-rch_id" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:bg-white focus:outline-none"></div>
+                    <div><label class="block text-xs font-semibold text-gray-700 mb-1">Husband's Name</label><input type="text" id="field-husband_name" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:bg-white focus:outline-none"></div>
+                    <div><label class="block text-xs font-semibold text-gray-700 mb-1">Age</label><input type="number" id="field-age" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:bg-white focus:outline-none"></div>
+                    <div><label class="block text-xs font-semibold text-gray-700 mb-1">Mobile Number</label><input type="text" id="field-mobile" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:bg-white focus:outline-none"></div>
+                    <div><label class="block text-xs font-semibold text-gray-700 mb-1">Address</label><input type="text" id="field-address" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:bg-white focus:outline-none"></div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-4">
+                <h3 class="text-sm font-bold text-primary-700 uppercase tracking-wider border-b pb-2"><i class="fa-solid fa-baby mr-2"></i>Section B: Obstetric History</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    <div><label class="block text-xs font-semibold text-gray-700 mb-1">LMP</label><input type="date" id="field-lmp" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm"></div>
+                    <div><label class="block text-xs font-semibold text-gray-700 mb-1">EDD</label><input type="date" id="field-edd" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm"></div>
+                    <div><label class="block text-xs font-semibold text-gray-700 mb-1">Gravida</label><input type="number" id="field-gravida" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm"></div>
+                    <div><label class="block text-xs font-semibold text-gray-700 mb-1">Para</label><input type="number" id="field-para" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm"></div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-4">
+                <h3 class="text-sm font-bold text-primary-700 uppercase tracking-wider border-b pb-2"><i class="fa-solid fa-stethoscope mr-2"></i>Section C: Vitals</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div><label class="block text-xs font-semibold text-gray-700 mb-1">Visit Date</label><input type="date" id="field-visit_date" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm"></div>
+                    <div><label class="block text-xs font-semibold text-gray-700 mb-1">Weight (kg)</label><input type="number" step="0.1" id="field-weight_kg" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm"></div>
+                    <div><label class="block text-xs font-semibold text-gray-700 mb-1">Hemoglobin (g/dL)</label><input type="number" step="0.1" id="field-hemoglobin" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm"></div>
+                    <div><label class="block text-xs font-semibold text-gray-700 mb-1">BP Systolic</label><input type="number" id="field-bp_systolic" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm"></div>
+                    <div><label class="block text-xs font-semibold text-gray-700 mb-1">BP Diastolic</label><input type="number" id="field-bp_diastolic" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm"></div>
+                    <div class="sm:col-span-2 md:col-span-3">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Symptoms</label>
+                        <input type="text" id="field-symptoms" class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Comma separated symptoms">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+        let draft = getCurrentDraft();
+        if (!draft) {
+            // Fallback default draft if opened directly
+            draft = {
+                name: "Lakshmi Nair", rch_id: "RCH-2026-3321", husband_name: "Hariharan", age: 26, address: "Kazhakkoottam", mobile: "9847123456",
+                lmp: "2025-11-01", edd: "2026-08-08", gravida: 2, para: 1, visit_date: new Date().toISOString().split('T')[0],
+                weight_kg: 61.0, bp_systolic: 142, bp_diastolic: 90, hemoglobin: 10.1, symptoms: ["Severe headache"], hrp_flag: true, alerts: ["High BP recorded"]
+            };
+        }
+
+        // Populate form
+        for (let k in draft) {
+            const el = document.getElementById(`field-${k}`);
+            if (el) {
+                if (k === 'symptoms' && Array.isArray(draft[k])) el.value = draft[k].join(', ');
+                else el.value = draft[k] !== null ? draft[k] : '';
+            }
+        }
+
+        if (draft.alerts && draft.alerts.length > 0) {
+            document.getElementById('alertBanner').classList.remove('hidden');
+            document.getElementById('alertBannerText').innerText = draft.alerts.join(' | ');
+        }
+
+        function saveAndRegister() {
+            const keys = ['name', 'rch_id', 'husband_name', 'age', 'address', 'mobile', 'lmp', 'edd', 'gravida', 'para', 'visit_date', 'weight_kg', 'bp_systolic', 'bp_diastolic', 'hemoglobin'];
+            keys.forEach(k => {
+                const el = document.getElementById(`field-${k}`);
+                if (el) draft[k] = el.value !== '' ? (isNaN(el.value) ? el.value : Number(el.value)) : null;
+            });
+
+            const symInput = document.getElementById('field-symptoms');
+            if(symInput) draft.symptoms = symInput.value.split(',').map(s => s.trim()).filter(Boolean);
+
+            let alerts = [];
+            let hrp = false;
+            if (draft.bp_systolic >= 140 || draft.bp_diastolic >= 90) {
+                alerts.push(`High BP recorded (${draft.bp_systolic}/${draft.bp_diastolic} mmHg)`);
+                hrp = true;
+            }
+            if (draft.hemoglobin && draft.hemoglobin < 11.0) {
+                alerts.push(`Low Hemoglobin (${draft.hemoglobin} g/dL) — Anemia risk`);
+                hrp = true;
+            }
+            draft.alerts = alerts;
+            draft.hrp_flag = hrp;
+
+            const visits = getVisits();
+            visits.unshift(draft);
+            saveVisits(visits);
+            localStorage.removeItem(DRAFT_KEY);
+
+            alert("Visit successfully confirmed and saved to official register!");
+            window.location.href = "register.html";
+        }
+    </script>
+</body>
+</html>
