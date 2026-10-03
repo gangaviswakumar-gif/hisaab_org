@@ -24,7 +24,10 @@ def init_db():
             lmp TEXT,
             edd TEXT,
             gravida INTEGER,
-            para INTEGER
+            para INTEGER,
+            home_lat REAL,
+            home_lon REAL,
+            last_visit_date TEXT
         )
         """)
         
@@ -57,8 +60,9 @@ def save_patient(data: Dict[str, Any]):
     with get_db() as conn:
         conn.execute("""
             INSERT OR REPLACE INTO patients (
-                rch_id, name, husband_name, age, address, mobile, lmp, edd, gravida, para
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                rch_id, name, husband_name, age, address, mobile, lmp, edd, gravida, para,
+                home_lat, home_lon, last_visit_date
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             rch_id,
             data.get("name"),
@@ -69,7 +73,10 @@ def save_patient(data: Dict[str, Any]):
             data.get("lmp"),
             data.get("edd"),
             data.get("gravida"),
-            data.get("para")
+            data.get("para"),
+            data.get("home_lat"),
+            data.get("home_lon"),
+            data.get("last_visit_date")
         ))
         conn.commit()
     return rch_id
@@ -129,7 +136,7 @@ def get_all_visits() -> List[Dict[str, Any]]:
     with get_db() as conn:
         cursor = conn.execute("""
             SELECT v.*, p.name, p.husband_name, p.age, p.address, p.mobile, 
-                   p.lmp, p.edd, p.gravida, p.para
+                   p.lmp, p.edd, p.gravida, p.para, p.home_lat, p.home_lon, p.last_visit_date
             FROM visits v
             JOIN patients p ON v.rch_id = p.rch_id
             ORDER BY v.visit_date DESC, v.visit_id DESC
@@ -141,10 +148,48 @@ def get_flagged_visits() -> List[Dict[str, Any]]:
     with get_db() as conn:
         cursor = conn.execute("""
             SELECT v.*, p.name, p.husband_name, p.age, p.address, p.mobile, 
-                   p.lmp, p.edd, p.gravida, p.para
+                   p.lmp, p.edd, p.gravida, p.para, p.home_lat, p.home_lon, p.last_visit_date
             FROM visits v
             JOIN patients p ON v.rch_id = p.rch_id
             WHERE v.hrp_flag = 1
             ORDER BY v.visit_date DESC, v.visit_id DESC
         """)
         return [_dict_factory(r) for r in cursor.fetchall()]
+
+def update_patient_location(rch_id: str, lat: float, lon: float):
+    init_db()
+    with get_db() as conn:
+        conn.execute("UPDATE patients SET home_lat = ?, home_lon = ? WHERE rch_id = ? AND home_lat IS NULL", (lat, lon, rch_id))
+        conn.commit()
+
+def update_last_visit_date(rch_id: str, visit_date: str):
+    init_db()
+    with get_db() as conn:
+        conn.execute("UPDATE patients SET last_visit_date = ? WHERE rch_id = ?", (visit_date, rch_id))
+        conn.commit()
+
+def get_due_patients(due_days: int = 28) -> List[Dict[str, Any]]:
+    from datetime import datetime, timedelta
+    init_db()
+    cutoff = (datetime.now() - timedelta(days=due_days)).strftime("%Y-%m-%d")
+    with get_db() as conn:
+        cursor = conn.execute("""
+            SELECT rch_id, name, husband_name, age, address, mobile, lmp, edd,
+                   gravida, para, home_lat, home_lon, last_visit_date
+            FROM patients
+            WHERE home_lat IS NOT NULL AND home_lon IS NOT NULL
+              AND (last_visit_date IS NULL OR last_visit_date <= ?)
+        """, (cutoff,))
+        return [dict(r) for r in cursor.fetchall()]
+
+def migrate_db():
+    with get_db() as conn:
+        cursor = conn.execute("PRAGMA table_info(patients)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        if "home_lat" not in existing_cols:
+            conn.execute("ALTER TABLE patients ADD COLUMN home_lat REAL")
+        if "home_lon" not in existing_cols:
+            conn.execute("ALTER TABLE patients ADD COLUMN home_lon REAL")
+        if "last_visit_date" not in existing_cols:
+            conn.execute("ALTER TABLE patients ADD COLUMN last_visit_date TEXT")
+        conn.commit()

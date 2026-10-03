@@ -26,6 +26,7 @@
                 <a href="register.html" class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100"><i class="fa-solid fa-book-medical mr-2"></i>Register</a>
                 <a href="alerts.html" class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100"><i class="fa-solid fa-triangle-exclamation mr-2 text-rose-500"></i>Alerts</a>
                 <a href="claim.html" class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100"><i class="fa-solid fa-file-invoice-dollar mr-2"></i>Claim PDF</a>
+                <a href="plan.html" class="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100"><i class="fa-solid fa-route mr-2"></i>Plan My Day</a>
             </div>
         </div>
     </header>
@@ -88,15 +89,13 @@
 
     <script src="app.js"></script>
     <script>
-        let draft = getCurrentDraft();
+                let draft = getCurrentDraft();
         if (!draft) {
-            // Fallback default draft if opened directly
-            draft = {
-                name: "Lakshmi Nair", rch_id: "RCH-2026-3321", husband_name: "Hariharan", age: 26, address: "Kazhakkoottam", mobile: "9847123456",
-                lmp: "2025-11-01", edd: "2026-08-08", gravida: 2, para: 1, visit_date: new Date().toISOString().split('T')[0],
-                weight_kg: 61.0, bp_systolic: 142, bp_diastolic: 90, hemoglobin: 10.1, symptoms: ["Severe headache"], hrp_flag: true, alerts: ["High BP recorded"]
-            };
+            draft = {}; // Empty fallback if opened directly without a voice note
         }
+        
+        // Always force visit_date to today, ignoring any voice-extracted date
+        draft.visit_date = new Date().toISOString().split('T')[0];
 
         // Populate form
         for (let k in draft) {
@@ -124,7 +123,7 @@
                     draft[k] = val;
                     if (requiredFields.includes(k) && (val === null || val === '')) {
                         missingRequired = true;
-                        el.classList.add('border-rose-500'); // Highlight missing field
+                        el.classList.add('border-rose-500');
                     } else {
                         el.classList.remove('border-rose-500');
                     }
@@ -138,6 +137,19 @@
 
             const symInput = document.getElementById('field-symptoms');
             if(symInput) draft.symptoms = symInput.value.split(',').map(s => s.trim()).filter(Boolean);
+
+            // Quietly grab GPS for first-time patients (non-blocking)
+            try {
+                const pos = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, {
+                        enableHighAccuracy: true, timeout: 5000, maximumAge: 60000
+                    });
+                });
+                draft.home_lat = pos.coords.latitude;
+                draft.home_lon = pos.coords.longitude;
+            } catch (gpsErr) {
+                console.log("GPS unavailable, proceeding without location:", gpsErr.message);
+            }
 
             try {
                 const result = await apiConfirmVisit(draft);

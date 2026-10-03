@@ -13,7 +13,7 @@ from backend.database import get_all_visits
 
 def generate_incentive_pdf(
     output_filename: str = "asha_incentive_report.pdf",
-    worker_name: str = "Anugrah K (ASHA Worker #4102)",
+    worker_name: str = "Anugraha K (ASHA Worker #4102)",
     phc_name: str = "Primary Health Centre, Ward 4",
     month_year: Optional[str] = None
 ) -> str:

@@ -12,8 +12,9 @@ from pydantic import BaseModel
 from backend.transcribe import transcribe_audio
 from backend.extract import extract_visit_data
 from backend.rules import evaluate_risk
-from backend.database import save_visit, get_all_visits, get_flagged_visits, init_db
+from backend.database import save_visit, get_all_visits, get_flagged_visits, init_db, update_patient_location, update_last_visit_date, get_due_patients, migrate_db
 from backend.ledger import sign_visit_record, verify_ledger, get_ledger_stats
+from backend.plan_day import build_route
 from backend.pdf_generator import generate_incentive_pdf
 
 app = FastAPI(
@@ -40,6 +41,7 @@ app.mount("/frontend", StaticFiles(directory=FRONTEND_DIR, html=True), name="fro
 @app.on_event("startup")
 def startup_event():
     init_db()
+    migrate_db()
 
 @app.get("/")
 def root():
@@ -88,6 +90,18 @@ def confirm_visit_endpoint(payload: Dict[str, Any]):
     # 3. Save to SQLite database (creates patient if missing, adds visit)
     visit_id = save_visit(signed_data)
     
+    # 4. For first-time patients, save home GPS location (no-op if already set)
+    rch_id = signed_data.get("rch_id", "")
+    home_lat = payload.get("home_lat")
+    home_lon = payload.get("home_lon")
+    if home_lat is not None and home_lon is not None:
+        update_patient_location(rch_id, float(home_lat), float(home_lon))
+    
+    # 5. Update last_visit_date to today for this patient
+    visit_date = signed_data.get("visit_date", "")
+    if visit_date and rch_id:
+        update_last_visit_date(rch_id, visit_date)
+    
     return {"success": True, "visit_id": visit_id, "record": signed_data}
 
 # 4. Get all visits
@@ -122,6 +136,18 @@ def generate_claim_endpoint():
         media_type="application/pdf",
         filename="ASHA_Incentive_Claim_Report.pdf"
     )
+
+class PlanDayRequest(BaseModel):
+    worker_lat: float
+    worker_lon: float
+    due_days: int = 28
+
+# 7. Plan My Day endpoint
+@app.post("/plan-day")
+def plan_day_endpoint(req: PlanDayRequest):
+    due_patients = get_due_patients(req.due_days)
+    plan = build_route(req.worker_lat, req.worker_lon, due_patients)
+    return plan
 
 if __name__ == "__main__":
     import uvicorn
