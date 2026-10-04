@@ -71,6 +71,7 @@ Team : ItsOkay
 Members : Anugrah M Shibu    :  Backend
           Arjun s P          :  Frontend
           Ganga T Viswakumar :  AI  pipeline
-          Gayathri Rajeev    :  File Generation and 
+          Gayathri Rajeev    :  File Generation and Hashing
+          
           
           
